@@ -1,6 +1,7 @@
 package com.medisphere.doctor.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +17,7 @@ import java.time.Instant;
 public class DoctorEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "dr_id", nullable = false)
+    @Column(name = "id", nullable = false)
     private Integer id;
 
     @Column(name = "dr_name", nullable = false, length = 200)
@@ -44,5 +45,9 @@ public class DoctorEntity {
     @UpdateTimestamp
     @Column(name = "modified_date")
     private Instant modifiedDate;
+
+    @NotNull
+    @Column(name = "doctor_id", nullable = false, length = Integer.MAX_VALUE)
+    private String doctorId;
 
 }
