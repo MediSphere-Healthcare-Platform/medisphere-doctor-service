@@ -9,4 +9,6 @@ public interface DoctorRepository extends JpaRepository<DoctorEntity, Integer> {
 
     @Query(value = "SELECT * FROM doctor_table WHERE doctor_id = :#{#doctorId.doctorId}" , nativeQuery = true)
     DoctorEntity getDoctorByDoctorId(@org.springframework.data.repository.query.Param("doctorId") GetByIdDoctorDTO doctorId);
+
+    DoctorEntity findByDoctorId(String doctorId);
 }

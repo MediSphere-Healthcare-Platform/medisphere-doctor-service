@@ -13,4 +13,5 @@ public class GetAllDoctorsDTO_patient {
     private String drName;
     private String specialty;
     private String drContactNo;
+    private String status;
 }
