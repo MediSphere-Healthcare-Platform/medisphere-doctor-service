@@ -13,9 +13,15 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UpdateDoctorDTO {
 
-    @NotNull(message = "Doctor Name can't be Null")
-    @NotEmpty(message = "Doctor Name can't be Empty")
-    private String drName;
+    @NotNull(message = "Doctor first Name can't be Null")
+    @NotEmpty(message = "Doctor first Name can't be Empty")
+    private String firstName;
+
+    @NotNull(message = "Doctor last Name can't be Null")
+    @NotEmpty(message = "Doctor last Name can't be Empty")
+    private String lastName;
+
+    private String profilePic;
 
     @NotNull(message = "Doctor Contact Number can't be Null")
     @NotEmpty(message = "Doctor Contact Number can't be Empty")

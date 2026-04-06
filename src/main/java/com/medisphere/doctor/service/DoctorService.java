@@ -6,15 +6,11 @@ import com.medisphere.doctor.dto.Response.GetAllDoctorsDTO_patient;
 import com.medisphere.doctor.entity.DoctorEntity;
 import com.medisphere.doctor.exception.EntryNotFoundException;
 import com.medisphere.doctor.repository.DoctorRepository;
-import com.medisphere.doctor.util.MessageConstant;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -54,7 +50,8 @@ public class DoctorService {
             if (existingDoctor == null) {
                 throw new EntryNotFoundException("Doctor not found with ID: " + doctorId);
             }
-            existingDoctor.setDrName(updateDoctorDTO.getDrName());
+            existingDoctor.setFirstName(updateDoctorDTO.getFirstName());
+            existingDoctor.setLastName(updateDoctorDTO.getLastName());
             existingDoctor.setDrContactNo(updateDoctorDTO.getDrContactNo());
             existingDoctor.setStatus(updateDoctorDTO.getStatus());
             doctorRepository.save(existingDoctor);

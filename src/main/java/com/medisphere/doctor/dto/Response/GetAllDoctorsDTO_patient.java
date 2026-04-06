@@ -10,8 +10,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class GetAllDoctorsDTO_patient {
-    private String drName;
+    private String firstName;
+    private String lastName;
     private String specialty;
+    private String profilePic;
     private String drContactNo;
     private String status;
 }

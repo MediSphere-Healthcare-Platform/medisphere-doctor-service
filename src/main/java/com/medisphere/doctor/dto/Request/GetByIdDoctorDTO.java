@@ -17,10 +17,12 @@ public class GetByIdDoctorDTO {
     @NotNull(message = "Doctor ID can't be Null")
     @NotEmpty(message = "Doctor ID can't be Empty")
     private String doctorId;
-    private String drName;
+    private String firstName;
+    private String lastName;
     private String specialty;
+    private String profilePic;
     private String drContactNo;
+    private String status;
     private String drLicence;
     private String drNic;
-    private String status;
 }
