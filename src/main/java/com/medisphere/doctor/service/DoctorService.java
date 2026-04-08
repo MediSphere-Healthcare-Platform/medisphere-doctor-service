@@ -22,7 +22,7 @@ public class DoctorService {
 
     public List<GetAllDoctorsDTO_patient> getAllDoctors() {
         try {
-            List<DoctorEntity> getAllDoctors = doctorRepository.findAll();
+            List<DoctorEntity> getAllDoctors = doctorRepository.getActiveDoctors();
             return modelMapper.map(getAllDoctors, new TypeToken<List<GetAllDoctorsDTO_patient>>() {
             }.getType());
         } catch (Exception e) {
