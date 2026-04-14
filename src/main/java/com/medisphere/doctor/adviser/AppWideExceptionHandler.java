@@ -4,6 +4,7 @@ import com.medisphere.doctor.exception.EntryNotFoundException;
 import com.medisphere.doctor.util.StandardResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -15,6 +16,15 @@ public class AppWideExceptionHandler {
         return new ResponseEntity<>(
                 new StandardResponse(404, e.getMessage(), e.getMessage()),
                 HttpStatus.NOT_FOUND
+        );
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<StandardResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        String errorMessage = e.getBindingResult().getFieldErrors().get(0).getDefaultMessage();
+        return new ResponseEntity<>(
+                new StandardResponse(400, errorMessage, "Validation Error"),
+                HttpStatus.BAD_REQUEST
         );
     }
 

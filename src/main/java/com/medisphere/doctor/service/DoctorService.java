@@ -1,17 +1,26 @@
 package com.medisphere.doctor.service;
 
+import com.medisphere.doctor.dto.Request.CreateDoctorDTO;
+import com.medisphere.doctor.dto.Request.DeleteDoctorDTO;
 import com.medisphere.doctor.dto.Request.GetByIdDoctorDTO;
 import com.medisphere.doctor.dto.Request.UpdateDoctorDTO;
 import com.medisphere.doctor.dto.Response.GetAllDoctorsDTO_patient;
 import com.medisphere.doctor.entity.DoctorEntity;
 import com.medisphere.doctor.exception.EntryNotFoundException;
 import com.medisphere.doctor.repository.DoctorRepository;
+import com.medisphere.doctor.util.StandardResponse;
+import feign.Param;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.RequestBody;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +39,7 @@ public class DoctorService {
         }
     }
 
-    public GetByIdDoctorDTO getDoctorById(GetByIdDoctorDTO id) {
+    public GetByIdDoctorDTO getDoctorById(@Validated GetByIdDoctorDTO id) {
         try {
             DoctorEntity doctor = doctorRepository.getDoctorByDoctorId(id);
             if (doctor == null) {
@@ -44,7 +53,7 @@ public class DoctorService {
         }
     }
 
-    public GetByIdDoctorDTO updateDoctorDetails(String doctorId, UpdateDoctorDTO updateDoctorDTO) {
+    public GetByIdDoctorDTO updateDoctorDetails(String doctorId, @Validated UpdateDoctorDTO updateDoctorDTO) {
         try {
             DoctorEntity existingDoctor = doctorRepository.findByDoctorId(doctorId);
             if (existingDoctor == null) {
@@ -55,11 +64,78 @@ public class DoctorService {
             existingDoctor.setDrContactNo(updateDoctorDTO.getDrContactNo());
             existingDoctor.setStatus(updateDoctorDTO.getStatus());
             doctorRepository.save(existingDoctor);
+
             return modelMapper.map(existingDoctor, GetByIdDoctorDTO.class);
+
         } catch (EntryNotFoundException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException("Error updating doctor details: " + e.getMessage());
+        }
+    }
+
+    public String CreateDoctor(@Validated CreateDoctorDTO createDoctorDTO) {
+        try {
+
+            DoctorEntity existingDoctor = doctorRepository.findByDoctorId(createDoctorDTO.getDoctorId());
+
+            if(existingDoctor != null) {
+                return "Doctor already exists";
+            }
+
+            DoctorEntity msUserIdExist = doctorRepository.getDoctorByMsUserId(createDoctorDTO.getMsUserId());
+
+            if(msUserIdExist != null) {
+                return "User already registered as a doctor";
+            }
+
+            DoctorEntity nicExist = doctorRepository.findDoctorByNIC(createDoctorDTO.getDrNic());
+
+            if(nicExist != null) {
+                return "The Given NIC already registered";
+            }
+
+            DoctorEntity doctor = new DoctorEntity();
+
+            doctor.setFirstName(createDoctorDTO.getFirstName());
+            doctor.setLastName(createDoctorDTO.getLastName());
+            doctor.setDrContactNo(createDoctorDTO.getDrContactNo());
+            doctor.setStatus(createDoctorDTO.getStatus());
+            doctor.setDoctorId(createDoctorDTO.getDoctorId());
+            doctor.setDrNic(createDoctorDTO.getDrNic());
+            doctor.setDrLicence(createDoctorDTO.getDrLicence());
+            doctor.setMsUserId(createDoctorDTO.getMsUserId());
+            doctor.setProfilePic(createDoctorDTO.getProfilePic());
+            doctor.setSpecialty(createDoctorDTO.getSpecialty());
+
+            //set time stamp
+            Instant now = Instant.now();
+            doctor.setCreateDate(now);
+            doctor.setModifiedDate(now);
+
+            doctorRepository.save(doctor);
+            return "Successful";
+
+        }catch (Exception e) {
+            throw new RuntimeException("Error Creating doctor: " + e.getMessage());
+        }
+    }
+
+    public String DeleteDoctor(DeleteDoctorDTO deleteDoctorDTO) {
+        try {
+            String doctorId = deleteDoctorDTO.getDoctorId();
+            if (doctorId == null || doctorId.equalsIgnoreCase("null") || doctorId.isEmpty()) {
+                return "Invalid Doctor ID";
+            }
+
+            if (doctorRepository.findByDoctorId(doctorId) == null) {
+                return "Doctor not found";
+            }
+
+            doctorRepository.deleteByDoctorId(doctorId);
+            return "Deleted";
+        } catch (Exception e) {
+            throw new RuntimeException("Error Deleting doctor: " + e.getMessage());
         }
     }
 
