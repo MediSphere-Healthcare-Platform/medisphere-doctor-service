@@ -1,8 +1,10 @@
 package com.medisphere.doctor.controller;
 
 import com.medisphere.doctor.client.AppointmentClient;
+import com.medisphere.doctor.client.PatientClient;
 import com.medisphere.doctor.dto.Request.*;
 import com.medisphere.doctor.dto.Response.GetAllDoctorsDTO_patient;
+import com.medisphere.doctor.repository.DoctorRepository;
 import com.medisphere.doctor.service.DoctorService;
 import com.medisphere.doctor.util.Endpoint;
 import com.medisphere.doctor.util.StandardResponse;
@@ -22,6 +24,7 @@ public class DoctorController {
 
     private final DoctorService doctorService;
     private final AppointmentClient appointmentClient;
+    private final PatientClient  patientClient;
 
     @GetMapping(value = Endpoint.GET_ALL_DOCTORS_FOR_PATIENT)
     public ResponseEntity<StandardResponse> getAllDoctors() {
@@ -91,6 +94,22 @@ public class DoctorController {
                     HttpStatus.BAD_REQUEST
             );
         }
+    }
+
+    @GetMapping(value = Endpoint.APPOINTMENT_GET_BY_DOCTOR_ID)
+    public Object getAllAppointmentsByDoctorId(@Valid @PathVariable("doctorId") String doctorId) {
+        return new ResponseEntity<>(
+                appointmentClient.getAllAppointmentsByDoctorId(doctorId),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping(value = Endpoint.GET_ALL_UPLOADED_REPORTS)
+    public ResponseEntity<StandardResponse> getAllUploadedReports(@PathVariable("doctorId") String doctorId) {
+        return new ResponseEntity<>(
+                patientClient.getMedicalReportsByDoctorId(doctorId),
+                HttpStatus.OK
+        );
     }
 
 }
