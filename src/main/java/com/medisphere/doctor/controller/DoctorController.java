@@ -56,12 +56,12 @@ public class DoctorController {
 
         if(result.equals("Successful")) {
             return new ResponseEntity<>(
-                    new StandardResponse(200, "Doctor Successfully Added to System", doctorService.CreateDoctor(createDoctorDTO)),
+                    new StandardResponse(200, "Doctor Successfully Added to System", result),
                     HttpStatus.OK
             );
         }else{
             return new ResponseEntity<>(
-                    new StandardResponse(409, "Doctor already exist in system", doctorService.CreateDoctor(createDoctorDTO)),
+                    new StandardResponse(409, "Registration Failed", result),
                     HttpStatus.OK
             );
         }
@@ -77,7 +77,9 @@ public class DoctorController {
     }
 
     @DeleteMapping(value = Endpoint.DELETE_DOCTOR)
-    public ResponseEntity<StandardResponse> deleteDoctor(@Valid @PathVariable("id") DeleteDoctorDTO deleteDoctorDTO) {
+    public ResponseEntity<StandardResponse> deleteDoctor(@PathVariable("id") String id) {
+        DeleteDoctorDTO deleteDoctorDTO = new DeleteDoctorDTO();
+        deleteDoctorDTO.setDoctorId(id);
         String result = doctorService.DeleteDoctor(deleteDoctorDTO);
 
         if (result.equals("Deleted")) {

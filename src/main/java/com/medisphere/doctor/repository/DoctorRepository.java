@@ -14,15 +14,16 @@ import java.util.List;
 
 public interface DoctorRepository extends JpaRepository<DoctorEntity, Integer> {
 
-    @Query(value = "SELECT * FROM medisphere_doctor WHERE doctor_id = :#{#doctorId.doctorId}" , nativeQuery = true)
-    DoctorEntity getDoctorByDoctorId(@org.springframework.data.repository.query.Param("doctorId") GetByIdDoctorDTO doctorId);
+    @Query(value = "SELECT * FROM medisphere_doctor WHERE doctor_id = :#{#doctorId.doctorId}", nativeQuery = true)
+    DoctorEntity getDoctorByDoctorId(
+            @org.springframework.data.repository.query.Param("doctorId") GetByIdDoctorDTO doctorId);
 
     DoctorEntity findByDoctorId(String doctorId);
 
-    @Query(value = "SELECT * FROM medisphere_doctor WHERE ms_user_id = :msUserId" , nativeQuery = true)
+    @Query(value = "SELECT * FROM medisphere_doctor WHERE ms_user_id = :msUserId", nativeQuery = true)
     DoctorEntity getDoctorByMsUserId(@Param("msUserId") String msUserId);
 
-    @Query(value = "SELECT * FROM medisphere_doctor WHERE dr_nic = :drNic" , nativeQuery = true)
+    @Query(value = "SELECT * FROM medisphere_doctor WHERE dr_nic = :drNic", nativeQuery = true)
     DoctorEntity findDoctorByNIC(@Param("drNic") String drNic);
 
     @Query(value = "SELECT * FROM medisphere_doctor WHERE status = 'ACTIVE'", nativeQuery = true)
