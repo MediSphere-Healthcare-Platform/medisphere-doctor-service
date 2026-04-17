@@ -2,7 +2,12 @@ package com.medisphere.doctor.controller;
 
 import com.medisphere.doctor.client.AppointmentClient;
 import com.medisphere.doctor.client.PatientClient;
+import com.medisphere.doctor.client.TelemedicineClient;
 import com.medisphere.doctor.dto.Request.*;
+import com.medisphere.doctor.dto.Telemedicine.CreateSessionRequestDTO;
+import com.medisphere.doctor.dto.Telemedicine.PrescriptionRequestDTO;
+import com.medisphere.doctor.dto.Telemedicine.PrescriptionUpdateRequestDTO;
+import com.medisphere.doctor.dto.Telemedicine.TelemedicineEndSessionRequestDTO;
 import com.medisphere.doctor.dto.Response.GetAllDoctorsDTO_patient;
 import com.medisphere.doctor.repository.DoctorRepository;
 import com.medisphere.doctor.service.DoctorService;
@@ -18,13 +23,14 @@ import java.util.List;
 
 @RestController
 @CrossOrigin
-@RequestMapping(value = "doctor/api/v1")
+@RequestMapping(value = "/doctor/api/v1")
 @RequiredArgsConstructor
 public class DoctorController {
 
     private final DoctorService doctorService;
     private final AppointmentClient appointmentClient;
     private final PatientClient  patientClient;
+    private final TelemedicineClient telemedicineClient;
 
     @GetMapping(value = Endpoint.GET_ALL_DOCTORS_FOR_PATIENT)
     public ResponseEntity<StandardResponse> getAllDoctors() {
@@ -111,6 +117,46 @@ public class DoctorController {
         return new ResponseEntity<>(
                 patientClient.getMedicalReportsByDoctorId(doctorId),
                 HttpStatus.OK
+        );
+    }
+
+    @PutMapping(value = Endpoint.TELEMEDICINE_START_SESSION)
+    public ResponseEntity<Object> startTelemedicineSession(@PathVariable("sessionId") String sessionId) {
+        return new ResponseEntity<>(
+                telemedicineClient.startSession(sessionId),
+                HttpStatus.OK
+        );
+    }
+
+    @PutMapping(value = Endpoint.TELEMEDICINE_END_SESSION)
+    public ResponseEntity<Object> endTelemedicineSession(@PathVariable("sessionId") String sessionId, @RequestBody(required = false) TelemedicineEndSessionRequestDTO requestDTO) {
+        return new ResponseEntity<>(
+                telemedicineClient.endSession(sessionId, requestDTO),
+                HttpStatus.OK
+        );
+    }
+
+    @PostMapping(value = Endpoint.TELEMEDICINE_CREATE_PRESCRIPTION)
+    public ResponseEntity<Object> createPrescription(@Valid @RequestBody PrescriptionRequestDTO requestDTO, @RequestParam String doctorUserId) {
+        return new ResponseEntity<>(
+                telemedicineClient.createPrescription(requestDTO, doctorUserId),
+                HttpStatus.OK
+        );
+    }
+
+    @PutMapping(value = Endpoint.TELEMEDICINE_UPDATE_PRESCRIPTION)
+    public ResponseEntity<Object> updatePrescription(@PathVariable("prescriptionId") String prescriptionId, @Valid @RequestBody PrescriptionUpdateRequestDTO requestDTO, @RequestParam String doctorUserId) {
+        return new ResponseEntity<>(
+                telemedicineClient.updatePrescription(prescriptionId, requestDTO, doctorUserId),
+                HttpStatus.OK
+        );
+    }
+
+    @PostMapping(value = Endpoint.TELEMEDICINE_CREATE_SESSION)
+    public ResponseEntity<Object> createTelemedicineSession(@Valid @RequestBody CreateSessionRequestDTO requestDTO) {
+        return new ResponseEntity<>(
+                telemedicineClient.createSession(requestDTO),
+                HttpStatus.CREATED
         );
     }
 

@@ -3,7 +3,9 @@ package com.medisphere.doctor.service;
 import com.medisphere.doctor.dto.Request.CreateDoctorDTO;
 import com.medisphere.doctor.dto.Request.DeleteDoctorDTO;
 import com.medisphere.doctor.dto.Request.GetByIdDoctorDTO;
+import com.medisphere.doctor.dto.Request.NotificationRequestDTO;
 import com.medisphere.doctor.dto.Request.UpdateDoctorDTO;
+import com.medisphere.doctor.client.NotificationClient;
 import com.medisphere.doctor.dto.Response.GetAllDoctorsDTO_patient;
 import com.medisphere.doctor.entity.DoctorEntity;
 import com.medisphere.doctor.exception.EntryNotFoundException;
@@ -28,6 +30,7 @@ public class DoctorService {
 
     private final DoctorRepository doctorRepository;
     private final ModelMapper modelMapper;
+    private final NotificationClient notificationClient;
 
     public List<GetAllDoctorsDTO_patient> getAllDoctors() {
         try {
@@ -128,11 +131,34 @@ public class DoctorService {
                 return "Invalid Doctor ID";
             }
 
-            if (doctorRepository.findByDoctorId(doctorId) == null) {
+            // 1. Fetch doctor info before deletion to capture msUserId
+            DoctorEntity doctor = doctorRepository.findByDoctorId(doctorId);
+            if (doctor == null) {
                 return "Doctor not found";
             }
+            String msUserId = doctor.getMsUserId();
 
+            // 2. Perform deletion
             doctorRepository.deleteByDoctorId(doctorId);
+
+            // 3. Send Notification (Best-effort, wrapped in try-catch)
+            try {
+                NotificationRequestDTO notificationRequest = NotificationRequestDTO.builder()
+                        .userId(msUserId)
+                        .userRole("DOCTOR")
+                        .title("Account Deleted")
+                        .message("Your MediSphere doctor account (ID: " + doctorId + ") has been successfully deleted. Thank you for your service.")
+                        .channel("EMAIL")
+                        .isBroadcast(false)
+                        .build();
+
+                System.out.println("Sending deletion notification to: " + msUserId);
+                notificationClient.createNotification(notificationRequest);
+            } catch (Exception e) {
+                // Log the error but don't fail the deletion if the notification service is down
+                System.err.println("Notification trigger failed: " + e.getMessage());
+            }
+
             return "Deleted";
         } catch (Exception e) {
             throw new RuntimeException("Error Deleting doctor: " + e.getMessage());
