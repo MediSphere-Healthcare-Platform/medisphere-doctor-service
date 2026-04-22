@@ -28,6 +28,9 @@ public interface DoctorRepository extends JpaRepository<DoctorEntity, Integer> {
     @Query(value = "SELECT * FROM medisphere_doctor WHERE status = 'ACTIVE'", nativeQuery = true)
     List<DoctorEntity> getActiveDoctors();
 
+    @Query(value = "SELECT MAX(CAST(SUBSTRING(ms_user_id, 3) AS UNSIGNED)) FROM medisphere_doctor", nativeQuery = true)
+    Long findMaxMsUserId();
+
     @Modifying
     @Transactional
     @Query(value = "DELETE FROM medisphere_doctor WHERE doctor_id = :doctorId", nativeQuery = true)

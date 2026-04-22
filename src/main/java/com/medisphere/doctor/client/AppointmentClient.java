@@ -16,5 +16,5 @@ public interface AppointmentClient {
     Object appointmentStatusChange(@RequestBody AppointmentStatusChangeRequestDTO appointmentStatusChangeRequestDTO);
 
     @GetMapping(value = Endpoint.APPOINTMENT_GET_BY_DOCTOR_ID)
-    Object getAllAppointmentsByDoctorId(@PathVariable String doctorId);
+    Object getAllAppointmentsByDoctorId(@PathVariable("doctorId") String doctorId);
 }

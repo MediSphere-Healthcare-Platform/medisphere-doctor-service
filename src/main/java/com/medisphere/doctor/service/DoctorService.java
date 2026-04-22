@@ -5,6 +5,7 @@ import com.medisphere.doctor.dto.Request.DeleteDoctorDTO;
 import com.medisphere.doctor.dto.Request.GetByIdDoctorDTO;
 import com.medisphere.doctor.dto.Request.NotificationRequestDTO;
 import com.medisphere.doctor.dto.Request.UpdateDoctorDTO;
+import com.medisphere.doctor.client.AuthClient;
 import com.medisphere.doctor.client.NotificationClient;
 import com.medisphere.doctor.dto.Response.GetAllDoctorsDTO_patient;
 import com.medisphere.doctor.entity.DoctorEntity;
@@ -17,6 +18,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -26,11 +28,18 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class DoctorService {
 
     private final DoctorRepository doctorRepository;
     private final ModelMapper modelMapper;
     private final NotificationClient notificationClient;
+    private final AuthClient authClient;
+    private final CloudinaryService cloudinaryService;
+
+    public Long getMaxMsUserId() {
+        return doctorRepository.findMaxMsUserId();
+    }
 
     public List<GetAllDoctorsDTO_patient> getAllDoctors() {
         try {
@@ -56,7 +65,8 @@ public class DoctorService {
         }
     }
 
-    public GetByIdDoctorDTO updateDoctorDetails(String doctorId, @Validated UpdateDoctorDTO updateDoctorDTO) {
+    public GetByIdDoctorDTO updateDoctorDetails(String doctorId, UpdateDoctorDTO updateDoctorDTO,
+                                                 org.springframework.web.multipart.MultipartFile profileImage) {
         try {
             DoctorEntity existingDoctor = doctorRepository.findByDoctorId(doctorId);
             if (existingDoctor == null) {
@@ -66,6 +76,18 @@ public class DoctorService {
             existingDoctor.setLastName(updateDoctorDTO.getLastName());
             existingDoctor.setDrContactNo(updateDoctorDTO.getDrContactNo());
             existingDoctor.setStatus(updateDoctorDTO.getStatus());
+
+            // Upload new profile image to Cloudinary if provided
+            if (profileImage != null && !profileImage.isEmpty()) {
+                // Delete old image from Cloudinary if it exists
+                if (existingDoctor.getProfilePic() != null && !existingDoctor.getProfilePic().isBlank()) {
+                    cloudinaryService.deleteImage(existingDoctor.getProfilePic());
+                }
+                String imageUrl = cloudinaryService.uploadProfileImage(profileImage);
+                existingDoctor.setProfilePic(imageUrl);
+            }
+
+            existingDoctor.setModifiedDate(java.time.Instant.now());
             doctorRepository.save(existingDoctor);
 
             return modelMapper.map(existingDoctor, GetByIdDoctorDTO.class);
@@ -83,19 +105,19 @@ public class DoctorService {
             DoctorEntity existingDoctor = doctorRepository.findByDoctorId(createDoctorDTO.getDoctorId());
 
             if(existingDoctor != null) {
-                return "Doctor already exists";
+                throw new RuntimeException("Doctor already exists");
             }
 
             DoctorEntity msUserIdExist = doctorRepository.getDoctorByMsUserId(createDoctorDTO.getMsUserId());
 
             if(msUserIdExist != null) {
-                return "User already registered as a doctor";
+                throw new RuntimeException("User already registered as a doctor");
             }
 
             DoctorEntity nicExist = doctorRepository.findDoctorByNIC(createDoctorDTO.getDrNic());
 
             if(nicExist != null) {
-                return "The Given NIC already registered";
+                throw new RuntimeException("The Given NIC already registered");
             }
 
             DoctorEntity doctor = new DoctorEntity();
@@ -128,18 +150,25 @@ public class DoctorService {
         try {
             String doctorId = deleteDoctorDTO.getDoctorId();
             if (doctorId == null || doctorId.equalsIgnoreCase("null") || doctorId.isEmpty()) {
-                return "Invalid Doctor ID";
+                throw new RuntimeException("Invalid Doctor ID");
             }
 
             // 1. Fetch doctor info before deletion to capture msUserId
             DoctorEntity doctor = doctorRepository.findByDoctorId(doctorId);
             if (doctor == null) {
-                return "Doctor not found";
+                throw new EntryNotFoundException("Doctor not found");
             }
             String msUserId = doctor.getMsUserId();
 
             // 2. Perform deletion
             doctorRepository.deleteByDoctorId(doctorId);
+
+            // Sync deletion with Auth Service
+            try {
+                authClient.deleteUserByMsUserId(msUserId);
+            } catch (Exception e) {
+                System.err.println("Failed to sync deletion with Auth Service: " + e.getMessage());
+            }
 
             // 3. Send Notification (Best-effort, wrapped in try-catch)
             try {

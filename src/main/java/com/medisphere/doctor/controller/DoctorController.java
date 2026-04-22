@@ -16,8 +16,10 @@ import com.medisphere.doctor.util.StandardResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -50,10 +52,18 @@ public class DoctorController {
         );
     }
 
-    @PutMapping(value = Endpoint.UPDATE_DOCTOR_DETAILS)
-    public ResponseEntity<StandardResponse> updateDoctorDetails(@PathVariable("id") String id, @Valid @RequestBody UpdateDoctorDTO updateDoctorDTO) {
+    @PutMapping(
+            value = Endpoint.UPDATE_DOCTOR_DETAILS,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<StandardResponse> updateDoctorDetails(
+            @PathVariable("id") String id,
+            @Valid @RequestPart("doctor") UpdateDoctorDTO updateDoctorDTO,
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage
+    ) {
         return new ResponseEntity<>(
-                new StandardResponse(200, "Doctor details updated successfully", doctorService.updateDoctorDetails(id, updateDoctorDTO)),
+                new StandardResponse(200, "Doctor details updated successfully",
+                        doctorService.updateDoctorDetails(id, updateDoctorDTO, profileImage)),
                 HttpStatus.OK
         );
     }
@@ -160,4 +170,8 @@ public class DoctorController {
         );
     }
 
+    @GetMapping(value = "/getMaxMsUserId/internal")
+    public Long getMaxMsUserId() {
+        return doctorService.getMaxMsUserId();
+    }
 }

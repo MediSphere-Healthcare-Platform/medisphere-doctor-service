@@ -17,6 +17,7 @@ public class GetByIdDoctorDTO {
     @NotNull(message = "Doctor ID can't be Null")
     @NotEmpty(message = "Doctor ID can't be Empty")
     private String doctorId;
+    private String msUserId;
     private String firstName;
     private String lastName;
     private String specialty;

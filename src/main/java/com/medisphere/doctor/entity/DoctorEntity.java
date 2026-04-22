@@ -63,7 +63,6 @@ public class DoctorEntity {
     @Column(name = "status", nullable = false, length = 20)
     private String status;
 
-    @Size(max = 500)
     @Column(name = "profile_pic", length = 500)
     private String profilePic;
 
